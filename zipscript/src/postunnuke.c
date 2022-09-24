@@ -37,7 +37,7 @@
 int 
 main(int argc, char *argv[])
 {
-	int		k, n, m, l, complete_type = 0;
+	int		k, n, l, complete_type = 0;
 
 #ifdef USING_GLFTPD
         int             gnum = 0, unum = 0;
@@ -482,7 +482,7 @@ main(int argc, char *argv[])
 #if (show_users_in_group_dirs == FALSE)
 					if ((int)strlen(hide_uname) == 0) {
 						d_log("ng-post_unnuke:    Making username = groupname\n");
-						snprintf(g.v.user.name, 18, "%s", g.v.user.group);
+						snprintf(g.v.user.name, 23, "%s", g.v.user.group);
 					}
 #endif
 				}
