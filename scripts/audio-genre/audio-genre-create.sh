@@ -35,7 +35,7 @@ Christian Rock
 Classic Rock
 Classical
 Club
-Club House
+Club-House
 Comedy
 Contemporary Christian
 Country
