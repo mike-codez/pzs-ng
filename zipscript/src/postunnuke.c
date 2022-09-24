@@ -37,7 +37,7 @@
 int 
 main(int argc, char *argv[])
 {
-	int		k, n, l, complete_type = 0;
+	int		k, m, n, l, complete_type = 0;
 
 #ifdef USING_GLFTPD
         int             gnum = 0, unum = 0;
