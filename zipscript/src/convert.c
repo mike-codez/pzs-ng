@@ -145,7 +145,6 @@ convert_user(struct VARS *raceI, struct USERINFO *userI, struct GROUPINFO **grou
 				case 's':
 					out_p += bappend(out_p, out_end, "%*.*f", val1, val2, (double)(userI->speed / 1024. / userI->files));
 					break;
-
 				case 'D':
 					out_p += bappend(out_p, out_end, "%*llu", val1, (unsigned long long)userI->dayup);
 					break;
@@ -167,6 +166,9 @@ convert_user(struct VARS *raceI, struct USERINFO *userI, struct GROUPINFO **grou
 				case '^':
 					out_p += bappend(out_p, out_end, "%*s", val1, raceI->misc.basepath);
 					break;
+				case '+':
+                                        out_p += sprintf(out_p, "%*.*f", val1, val2, (double)(userI->speed / 1024. / 1024. / userI->files));
+                                        break;
 				}
 			} else {
 				BAPPEND_PUTC(out_p, out_end, *instr);
