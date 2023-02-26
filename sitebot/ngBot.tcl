@@ -1058,7 +1058,7 @@ namespace eval ::ngBot {
 			foreach {desc ip port} $entrysplit {break}
 
 			if {[istrue $bnc(PING)]} {
-				if {[catch {exec $binary(PING) -c $bnc(PINGCOUNT) -t $bnc(TIMEOUT) $ip} reply]} {
+				if {[catch {exec $binary(PING) -c $bnc(PINGCOUNT) -W $bnc(TIMEOUT) $ip} reply]} {
 					set output "$theme(PREFIX)$announce(BNC_PING)"
 					set output [${ns}::replacevar $output "%num" $num]
 					set output [${ns}::replacevar $output "%desc" $desc]
@@ -1088,9 +1088,9 @@ namespace eval ::ngBot {
 
 			set response [clock clicks -milliseconds]
 			if {[istrue $bnc(SECURE)]} {
-				set status [catch {exec $binary(CURL) --disable-epsv --max-time $bnc(TIMEOUT) --ftp-ssl --insecure -u $bnc(USER):$bnc(PASS) ftp://$ip:$port 2>@stdout} reply]
+				set status [catch {exec $binary(CURL) --no-ftp-skip-pasv-ip --disable-epsv --max-time $bnc(TIMEOUT) --ftp-ssl --insecure -u $bnc(USER):$bnc(PASS) ftp://$ip:$port 2>@stdout} reply]
 			} else {
-				set status [catch {exec $binary(CURL) --disable-epsv --max-time $bnc(TIMEOUT) -u $bnc(USER):$bnc(PASS) ftp://$ip:$port 2>@stdout} reply]
+				set status [catch {exec $binary(CURL) --no-ftp-skip-pasv-ip --disable-epsv --max-time $bnc(TIMEOUT) -u $bnc(USER):$bnc(PASS) ftp://$ip:$port 2>@stdout} reply]
 			}
 			set response [expr {[clock clicks -milliseconds] - $response}]
 			set type "ONLINE"

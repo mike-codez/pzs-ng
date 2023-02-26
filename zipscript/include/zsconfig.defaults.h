@@ -1012,7 +1012,7 @@
 
 #ifndef message_user_body
 #define message_user_body_is_defaulted
-#define message_user_body                         "| %3n %-29U %7.1mM %4fF %5.1p%% %7.0sKBs |\n"
+#define message_user_body                         "|%2n %-21.21U %7.1mM %4fF %5.1p%% %4.1+MiB/s |\n"
 #endif
 
 #ifndef message_user_footer
@@ -1192,7 +1192,7 @@
 
 #ifndef sample_types
 #define sample_types_is_defaulted
-#define sample_types                               "mpg,mpeg,m2v,m2p,avi,mkv,mov,mp4,wmv,vob,ts,jpg,jpeg,png"
+#define sample_types                               "mpg,mpeg,m2v,m2p,avi,mkv,mov,mp4,wmv,vob,ts,jpg,jpeg,png,m2ts"
 #endif
 
 #ifndef sfv_calc_single_fname

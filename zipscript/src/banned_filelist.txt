@@ -6,6 +6,7 @@
 # need to double-escape them ( \\[ and \\] ).
 #
 # version: Build 050614
+*"*
 *\\(*\\).nfo
 *.bad
 *.crc
