@@ -189,7 +189,7 @@ main(int argc, char **argv)
 					d_log("zipscript-c: glftpd says transfer was aborted; exiting early.\n");
 					break;
 				 case 2:
-					d_log("zipscript-c: glftpd says and error occured during transfer; exiting early.\n");
+					d_log("zipscript-c: glftpd says an error occured during transfer; exiting early.\n");
 					break;
 				 case 3:
 					d_log("zipscript-c: glftpd says disconnect/process was terminated during transfer; exiting early.\n");
