@@ -261,7 +261,39 @@ main(int argc, char **argv)
 	validate_argc(argc, argv);
 
 #ifdef USING_GLFTPD
-	crc_arg = argv[3];
+	if (argc < 4) {
+		d_log("zipscript-c: Wrong number of arguments used\n");
+		printf(" - - PZS-NG ZipScript-C %s - -\n\nUsage: %s <filename> <path> <crc>\n", NG_VERSION, argv[0]);
+		printf("Usage: %s --(full)config - shows (full) config compiled.\n\n", argv[0]);
+		exit(1);
+	}
+
+	/* introduced in glftpd 2.16 */
+	if (argc >= 5) {
+		int reason = atoi(argv[4]);
+		if (reason > 0 ) {
+			if (allow_file_resume) {
+				d_log("zipscript-c: Broken xfer according to glftpd; ignoring because of allow_file_resume.\n");
+			} else {
+			switch (reason) {
+				 case 1:
+					d_log("zipscript-c: glftpd says transfer was aborted; exiting early.\n");
+					break;
+				 case 2:
+					d_log("zipscript-c: glftpd says and error occured during transfer; exiting early.\n");
+					break;
+				 case 3:
+					d_log("zipscript-c: glftpd says disconnect/process was terminated during transfer; exiting early.\n");
+					break;
+				 default:
+					d_log("zipscript-c: glftpd indicates an unknown error (please update zipscript-c!); exiting early.\n");
+					break;
+				}
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+        crc_arg = argv[3];
 #else
 	crc_arg = argv[2];
 #endif
