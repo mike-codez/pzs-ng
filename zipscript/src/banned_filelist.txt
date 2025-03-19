@@ -644,6 +644,7 @@ tsf98.nfo
 tt.nfo
 tur.nfo
 tv.nfo
+tvmaze.nfo
 twh.nfo
 twilight.nfo
 tvm.nfo
@@ -658,7 +659,6 @@ ul_info.txt
 uls.nfo
 unconscious.nfo
 universe.nfo
-unleashed.nfo
 upc.nfo
 upl.jpg
 ups.nfo
