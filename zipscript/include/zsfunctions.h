@@ -160,3 +160,4 @@ extern unsigned int insampledir(char *);
 #endif
 
 extern int _err_file_banned(const char *fn, struct VARS *v);
+extern time_t get_earliest_file_time(const char *directory_path);

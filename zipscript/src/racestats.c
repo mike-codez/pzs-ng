@@ -65,6 +65,17 @@ main(int argc, char **argv)
 		goto END;
 
 	readrace(g.l.race, &g.v, g.ui, g.gi);
+	// Verify start_time
+	if (g.v.total.start_time == 0) {
+		// Get earliest file time if start_time is zero
+		time_t earliest_file_time = get_earliest_file_time(g.l.path);
+		if (earliest_file_time != 0) {
+			g.v.total.start_time = earliest_file_time;
+		} else {
+			// Fallback to stop_time
+			g.v.total.start_time = g.v.total.stop_time;
+		}
+	}
 	sprintf(g.l.sfv, storage "/%s/sfvdata", argv[1]);
 
 	if (!fileexists(g.l.sfv)) {

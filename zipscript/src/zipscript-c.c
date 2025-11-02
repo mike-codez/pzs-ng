@@ -354,20 +354,39 @@ main(int argc, char **argv)
 	if (stat(g.v.file.name, &fileinfo)) {
 		d_log("zipscript-c: Failed to stat file: %s\n", strerror(errno));
 		g.v.file.size = 0;
-		g.v.total.stop_time = 0;
+		g.v.total.stop_time = time(NULL);
 	} else {
 		g.v.file.size = fileinfo.st_size;
 		d_log("zipscript-c: File size was: %d\n", g.v.file.size);
-		g.v.total.stop_time = fileinfo.st_mtime;
+		g.v.total.stop_time = time(NULL); // Set stop_time to current time
 	}
 
+	d_log("zipscript-c: Set stop_time to current time: %ld\n", (long)g.v.total.stop_time);
+
 	d_log("zipscript-c: Setting race times\n");
-	if (g.v.file.size != 0)
-		g.v.total.start_time = g.v.total.stop_time - ((unsigned int)(g.v.file.size) / g.v.file.speed);
-	else
-		g.v.total.start_time = g.v.total.stop_time > (g.v.total.stop_time - 1) ? g.v.total.stop_time : (g.v.total.stop_time -1);
+
+	// Get the earliest file time in the directory
+	time_t earliest_file_time = get_earliest_file_time(g.l.path);
+
+	if (earliest_file_time != 0) {
+		g.v.total.start_time = earliest_file_time;
+		d_log("zipscript-c: Set start_time to earliest file time: %ld\n", (long)g.v.total.start_time);
+	} else {
+		// If no files found, set start_time to stop_time
+		g.v.total.start_time = g.v.total.stop_time;
+		d_log("zipscript-c: No files found, set start_time to stop_time: %ld\n", (long)g.v.total.start_time);
+	}
+
+	// Ensure duration is at least 1 second
 	if ((int)(g.v.total.stop_time - g.v.total.start_time) < 1)
 		g.v.total.stop_time = g.v.total.start_time + 1;
+
+	// if (g.v.file.size != 0)
+	// 	g.v.total.start_time = g.v.total.stop_time - ((unsigned int)(g.v.file.size) / g.v.file.speed);
+	// else
+	// 	g.v.total.start_time = g.v.total.stop_time > (g.v.total.stop_time - 1) ? g.v.total.stop_time : (g.v.total.stop_time -1);
+	// if ((int)(g.v.total.stop_time - g.v.total.start_time) < 1)
+	// 	g.v.total.stop_time = g.v.total.start_time + 1;
 
 	n = (g.l.length_path = (int)strlen(g.l.path)) + 1;
 
