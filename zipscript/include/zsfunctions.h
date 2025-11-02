@@ -176,3 +176,4 @@ extern void safe_snprintf(char *buffer, size_t size, const char *format, ...);
 extern int bappend(char *, const char *, const char *, ...);
 #define BAPPEND_PUTC(p, end, c) do { if ((p) < (end)) *(p)++ = (c); } while (0)
 extern bool is_process_running(pid_t pid);
+extern time_t get_earliest_file_time(const char *directory_path);

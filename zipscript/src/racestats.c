@@ -93,6 +93,19 @@ main(int argc, char **argv)
 		goto END;
 
 	readrace(g.l.race, &g.v, g.ui, g.gi);
+
+	// Verify start_time
+	if (g.v.total.start_time == 0) {
+		// Get earliest file time if start_time is zero
+		time_t earliest_file_time = get_earliest_file_time(g.l.path);
+		if (earliest_file_time != 0) {
+			g.v.total.start_time = earliest_file_time;
+		} else {
+			// Fallback to stop_time
+			g.v.total.start_time = g.v.total.stop_time;
+		}
+	}
+
 	if (snprintf(g.l.sfv, PATH_MAX, storage "/%s/sfvdata", argv[1]) >= PATH_MAX) {
 		printf("%s: invalid path argument: %s\n", argv[0], argv[1]);
 		goto END;

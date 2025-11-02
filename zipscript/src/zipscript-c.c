@@ -472,19 +472,34 @@ main(int argc, char **argv)
 		gettimeofday(&g.v.total.stop_time, NULL);
 	}
 
+	d_log("zipscript-c: Set stop_time to current time: %ld\n", (long)g.v.total.stop_time);
+
 	d_log("zipscript-c: Setting race times\n");
-	if (g.v.file.size != 0) {
-		unsigned int duration_sec = (unsigned int)(g.v.file.size) / g.v.file.speed;
-		g.v.total.start_time.tv_sec = g.v.total.stop_time.tv_sec - duration_sec;
-		g.v.total.start_time.tv_usec = g.v.total.stop_time.tv_usec;
+
+	// Get the earliest file time in the directory
+	time_t earliest_file_time = get_earliest_file_time(g.l.path);
+
+	if (earliest_file_time != 0) {
+		g.v.total.start_time = earliest_file_time;
+		d_log("zipscript-c: Set start_time to earliest file time: %ld\n", (long)g.v.total.start_time);
 	} else {
-		g.v.total.start_time.tv_sec = g.v.total.stop_time.tv_sec - 1;
-		g.v.total.start_time.tv_usec = g.v.total.stop_time.tv_usec;
+		// If no files found, set start_time to stop_time
+		g.v.total.start_time = g.v.total.stop_time;
+		d_log("zipscript-c: No files found, set start_time to stop_time: %ld\n", (long)g.v.total.start_time);
 	}
+
+	// Ensure duration is at least 1 second
 	if ((g.v.total.stop_time.tv_sec - g.v.total.start_time.tv_sec) < 1) {
 		g.v.total.stop_time.tv_sec = g.v.total.start_time.tv_sec + 1;
 		g.v.total.stop_time.tv_usec = g.v.total.start_time.tv_usec;
 	}
+
+	// if (g.v.file.size != 0)
+	// 	g.v.total.start_time = g.v.total.stop_time - ((unsigned int)(g.v.file.size) / g.v.file.speed);
+	// else
+	// 	g.v.total.start_time = g.v.total.stop_time > (g.v.total.stop_time - 1) ? g.v.total.stop_time : (g.v.total.stop_time -1);
+	// if ((int)(g.v.total.stop_time - g.v.total.start_time) < 1)
+	// 	g.v.total.stop_time = g.v.total.start_time + 1;
 
 	n = (g.l.length_path = (int)strlen(g.l.path)) + 1;
 
