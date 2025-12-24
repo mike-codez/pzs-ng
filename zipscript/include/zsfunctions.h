@@ -164,3 +164,4 @@ extern unsigned int insampledir(char *);
 extern int _err_file_banned(const char *fn, struct VARS *v);
 extern void safe_snprintf(char *buffer, size_t size, const char *format, ...);
 extern bool is_process_running(pid_t pid);
+extern time_t get_earliest_file_time(const char *directory_path);

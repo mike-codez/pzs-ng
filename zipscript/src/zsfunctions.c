@@ -2028,3 +2028,40 @@ bool is_process_running(pid_t pid) {
 
     return false;  // ESRCH
 }
+
+time_t get_earliest_file_time(const char *directory_path) {
+    time_t earliest_file_time = 0;
+    struct dirent *entry;
+    DIR *dp = opendir(directory_path);
+    struct stat file_stat;
+
+    if (dp != NULL) {
+        while ((entry = readdir(dp))) {
+            // Skip "." and ".."
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                continue;
+
+            char filepath[PATH_MAX];
+            snprintf(filepath, PATH_MAX, "%s/%s", directory_path, entry->d_name);
+
+			// Get file info
+            if (stat(filepath, &file_stat) == 0) {
+                // Only consider regular files
+                if (S_ISREG(file_stat.st_mode)) {
+                    if (earliest_file_time == 0 || file_stat.st_mtime < earliest_file_time)
+                        earliest_file_time = file_stat.st_mtime;
+                }
+            }
+        }
+        closedir(dp);
+    }
+
+    // If no files found, use directory's modification time
+    if (earliest_file_time == 0) {
+        if (stat(directory_path, &file_stat) == 0) {
+            earliest_file_time = file_stat.st_mtime;
+        }
+    }
+
+    return earliest_file_time;
+}
