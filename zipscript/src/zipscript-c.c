@@ -501,6 +501,13 @@ main(int argc, char **argv)
 	// if ((int)(g.v.total.stop_time - g.v.total.start_time) < 1)
 	// 	g.v.total.stop_time = g.v.total.start_time + 1;
 
+	// if (g.v.file.size != 0)
+	// 	g.v.total.start_time = g.v.total.stop_time - ((unsigned int)(g.v.file.size) / g.v.file.speed);
+	// else
+	// 	g.v.total.start_time = g.v.total.stop_time > (g.v.total.stop_time - 1) ? g.v.total.stop_time : (g.v.total.stop_time -1);
+	// if ((int)(g.v.total.stop_time - g.v.total.start_time) < 1)
+	// 	g.v.total.stop_time = g.v.total.start_time + 1;
+
 	n = (g.l.length_path = (int)strlen(g.l.path)) + 1;
 
 	d_log("zipscript-c: Allocating memory for variables\n");
