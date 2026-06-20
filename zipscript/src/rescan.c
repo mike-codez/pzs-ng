@@ -37,7 +37,7 @@ void print_syntax(int chdir_allowed); /* Defined at the bottom of this file. */
 int 
 main(int argc, char *argv[])
 {
-	int		n, l, complete_type = 0, not_allowed = 0, argv_mode = 0;
+	int		n, l, complete_type = 0, not_allowed = 0, argv_mode = 0, zip_status = 0;
 
 #ifdef USING_GLFTPD
         int             gnum = 0, unum = 0;
@@ -48,8 +48,10 @@ main(int argc, char *argv[])
 	unsigned int	crc;
 	struct stat	fileinfo;
 
+#ifdef USING_GLFTPD
 	uid_t		f_uid;
 	gid_t		f_gid;
+#endif
 	double		temp_time = 0;
 
 	DIR		*dir, *parent;
@@ -233,7 +235,7 @@ main(int argc, char *argv[])
 		snprintf(g.v.sectionname, sizeof(g.v.sectionname), "%s", getenv("SECTION"));
 	}
 #else
-        snprintf(g.v.sectionname, sizeof(g.v.sectionname), argv[4]);
+        snprintf(g.v.sectionname, sizeof(g.v.sectionname), "%s", argv[4]);
 #endif
 
 	g.l.length_path = (int)strlen(g.l.path);
@@ -376,13 +378,13 @@ main(int argc, char *argv[])
 					ext++;
 				if (!strcasecmp(ext, "zip")) {
 					stat(dp->d_name, &fileinfo);
-					f_uid = fileinfo.st_uid;
-					f_gid = fileinfo.st_gid;
 					if ((timenow == fileinfo.st_ctime) && (fileinfo.st_mode & 0111)) {
 						d_log("rescan.c: Seems this file (%s) is in the process of being uploaded. Ignoring for now.\n", dp->d_name);
 						continue;
 					}
 #ifdef USING_GLFTPD
+					f_uid = fileinfo.st_uid;
+					f_gid = fileinfo.st_gid;
 					strlcpy(g.v.user.name, get_u_name(f_uid), sizeof(g.v.user.name));
 					strlcpy(g.v.user.group, get_g_name(f_gid), sizeof(g.v.user.group));
 #else
@@ -392,23 +394,33 @@ main(int argc, char *argv[])
 					strlcpy(g.v.file.name, dp->d_name, sizeof(g.v.file.name));
 					g.v.file.speed = 2005 * 1024;
 					g.v.file.size = fileinfo.st_size;
-					g.v.total.start_time = 0;
+					g.v.total.start_time.tv_sec = 0;
+					g.v.total.start_time.tv_usec = 0;
 					_err_file_banned(g.v.file.name, &g.v);
 #if (test_for_password || extract_nfo)
 					tempstream = telldir(dir);
-					if ((!findfileextcount(dir, ".nfo") || findfileextcount(dir, ".zip")) && !mkdir(".unzipped", 0777))
-						snprintf(exec, sizeof(exec), "%s -qqjo \"%s\" -d .unzipped 2>.delme", unzip_bin, g.v.file.name);
-					else
-						snprintf(exec, sizeof(exec), "%s -qqt \"%s\" 2>.delme", unzip_bin, g.v.file.name);
+					if ((!findfileextcount(dir, ".nfo") || findfileextcount(dir, ".zip")) && !mkdir(".unzipped", 0777)) {
+						char *unzip_args[] = { unzip_bin, "-qqjo", g.v.file.name, "-d", ".unzipped", NULL };
+
+						zip_status = execute_argv(unzip_args);
+					} else {
+						char *unzip_args[] = { unzip_bin, "-qqt", g.v.file.name, NULL };
+
+						zip_status = execute_argv(unzip_args);
+					}
 					seekdir(dir, tempstream);
 #else
-					snprintf(exec, sizeof(exec), "%s -qqt \"%s\" 2>.delme", unzip_bin, g.v.file.name);
+					{
+						char *unzip_args[] = { unzip_bin, "-qqt", g.v.file.name, NULL };
+
+						zip_status = execute_argv(unzip_args);
+					}
 #endif
-					if (system(exec) == 0 || (allow_error2_in_unzip == TRUE && errno < 3 )) {
+					if (zip_status == 0 || (allow_error2_in_unzip == TRUE && errno < 3 )) {
 						writerace(g.l.race, &g.v, crc, F_CHECKED);
 					} else {
 						writerace(g.l.race, &g.v, crc, F_BAD);
-						if (g.v.file.name)
+						if (strlen(g.v.file.name) > 0)
 							unlink(g.v.file.name);
 						removedir(".unzipped");
 						continue;
@@ -418,7 +430,7 @@ main(int argc, char *argv[])
                         	        if ((!findfileextcount(dir, ".nfo") || findfileextcount(dir, ".zip")) && check_zipfile(".unzipped", g.v.file.name, findfileextcount(dir, ".nfo"))) {
                                 	        d_log("rescan: File %s is password protected.\n", g.v.file.name);
 						writerace(g.l.race, &g.v, crc, F_BAD);
-						if (g.v.file.name)
+						if (strlen(g.v.file.name) > 0)
 							unlink(g.v.file.name);
 						seekdir(dir, tempstream);
 						continue;
@@ -426,8 +438,9 @@ main(int argc, char *argv[])
 					seekdir(dir, tempstream);
 #endif
 					if (!fileexists("file_id.diz")) {
-						snprintf(exec, sizeof(exec), "%s -qqjnCLL \"%s\" file_id.diz 2>.delme", unzip_bin, g.v.file.name);
-						if (execute(exec) != 0) {
+						char *unzip_diz_args[] = { unzip_bin, "-qqjnCLL", g.v.file.name, "file_id.diz", NULL };
+
+						if (execute_argv(unzip_diz_args) != 0) {
 							d_log("rescan: No file_id.diz found (#%d): %s\n", errno, strerror(errno));
 						} else {
 							if (fileexists("file_id.diz.bad")) {
@@ -568,7 +581,8 @@ main(int argc, char *argv[])
 
 			return 0;
 		}
-		g.v.total.start_time = 0;
+		g.v.total.start_time.tv_sec = 0;
+		g.v.total.start_time.tv_usec = 0;
 		rewinddir(dir);
 		while ((dp = readdir(dir))) {
 			if (*one_name && strncasecmp(one_name, dp->d_name, strlen(one_name)))
@@ -615,10 +629,9 @@ main(int argc, char *argv[])
 				if (ignore_zero_sized_on_rescan && !fileinfo.st_size)
 					continue;
 
+#ifdef USING_GLFTPD
 				f_uid = fileinfo.st_uid;
 				f_gid = fileinfo.st_gid;
-
-#ifdef USING_GLFTPD
 				strlcpy(g.v.user.name, get_u_name(f_uid), sizeof(g.v.user.name));
 				strlcpy(g.v.user.group, get_g_name(f_gid), sizeof(g.v.user.group));
 #else
@@ -632,12 +645,18 @@ main(int argc, char *argv[])
 
 				temp_time = fileinfo.st_mtime;
 
-				if (g.v.total.start_time == 0)
-					g.v.total.start_time = temp_time;
-				else
-					g.v.total.start_time = (g.v.total.start_time < temp_time ? g.v.total.start_time : temp_time);
+				if (g.v.total.start_time.tv_sec == 0) {
+					g.v.total.start_time.tv_sec = temp_time;
+					g.v.total.start_time.tv_usec = 0;
+				} else if (temp_time < g.v.total.start_time.tv_sec) {
+					g.v.total.start_time.tv_sec = temp_time;
+					g.v.total.start_time.tv_usec = 0;
+				}
 
-				g.v.total.stop_time = (temp_time > g.v.total.stop_time ? temp_time : g.v.total.stop_time);
+				if (temp_time > g.v.total.stop_time.tv_sec) {
+					g.v.total.stop_time.tv_sec = temp_time;
+					g.v.total.stop_time.tv_usec = 0;
+				}
 
 				/* Hide users in group_dirs */
 				if (matchpath(group_dirs, g.l.path) && (hide_group_uploaders == TRUE)) {
@@ -664,7 +683,7 @@ main(int argc, char *argv[])
  					crc = 1;
 
 				if (!S_ISDIR(fileinfo.st_mode)) {
-					if (g.v.file.name)
+					if (strlen(g.v.file.name) > 0)
 						unlink_missing(g.v.file.name);
 					if (l > 44) {
 						if (crc == 1)
@@ -805,9 +824,8 @@ main(int argc, char *argv[])
 			if (!fileexists(rescan_script)) {
 				d_log("rescan: Warning - rescan_script (%s) - file does not exist!\n", rescan_script);
 			} else {
-				snprintf(target, sizeof(target), rescan_script " \"%s\"", g.v.file.name);
 				_err_file_banned(g.v.file.name, &g.v);
-				if (execute(target) != 0)
+					if (execute_hook(rescan_script, g.v.file.name) != 0)
 					d_log("rescan: Failed to execute rescan_script: %s\n", strerror(errno));
 			}
 #endif
