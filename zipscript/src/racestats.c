@@ -91,11 +91,12 @@ main(int argc, char **argv)
 
 	readrace(g.l.race, &g.v, g.ui, g.gi);
 	// Verify start_time
-	if (g.v.total.start_time == 0) {
+	if (g.v.total.start_time.tv_sec == 0) {
 		// Get earliest file time if start_time is zero
 		time_t earliest_file_time = get_earliest_file_time(g.l.path);
 		if (earliest_file_time != 0) {
-			g.v.total.start_time = earliest_file_time;
+			g.v.total.start_time.tv_sec = earliest_file_time;
+			g.v.total.start_time.tv_usec = 0;
 		} else {
 			// Fallback to stop_time
 			g.v.total.start_time = g.v.total.stop_time;
