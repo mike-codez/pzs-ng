@@ -425,7 +425,7 @@ main(int argc, char **argv)
 		gettimeofday(&g.v.total.stop_time, NULL);
 	}
 
-	d_log("zipscript-c: Set stop_time to current time: %ld\n", (long)g.v.total.stop_time);
+	d_log("zipscript-c: Set stop_time to current time: %ld\n", (long)g.v.total.stop_time.tv_sec);
 
 	d_log("zipscript-c: Setting race times\n");
 	if (g.v.file.size != 0) {
