@@ -2143,11 +2143,11 @@ filebanned_match(const char *filename)
         int             fd;
         char            buf[500];
         FILE            *fname_fd;
-        char            fbuf[strlen(filename)+1];
+        size_t          flen = strlen(filename);
+        char            fbuf[flen + 1];
         int             matched = 0;
 
-        bzero(fbuf, sizeof(fbuf));
-        strncpy(fbuf, filename, sizeof(fbuf) - 1);
+        memcpy(fbuf, filename, flen + 1);       /* copies the '\0' too */
 
         if ((fd = open(banned_filelist, O_RDONLY)) == -1) {
                 d_log("filebanned_match: failed to open banned_filelist - open(%s): %s\n", banned_filelist, strerror(errno));
@@ -2160,12 +2160,11 @@ filebanned_match(const char *filename)
         }
         strtolower(fbuf);
         while ((fgets(buf, sizeof(buf), fname_fd))) {
-                buf[strlen(buf) - 1] = '\0';
+                buf[strcspn(buf, "\r\n")] = '\0';
                 if ( *buf == '\0' || *buf == ' ' || *buf == '\t' || *buf == '#' )
                         continue;
                 strtolower(buf);
                 if (!fnmatch(buf, fbuf, 0)) {
-                        close(fd);
                         d_log("filebanned_match: found match: %s\n", fbuf);
                         matched = 1;
                         break;
@@ -2175,7 +2174,6 @@ filebanned_match(const char *filename)
         fclose(fname_fd);
         return matched;
 }
-
 
 /* kSa - yes this is somewhat inefficient as we'll open the banned file every time and it's not cached
    i'm not going to rewrite the code here and rely on fs caching. also, someone should rewrite zipscript in a

@@ -646,7 +646,7 @@ get_flac_audio_info(char *f, struct audio *audio)
 		stat(f, &st);
 
 		if (temp_meta->data.stream_info.total_samples)
-			snprintf(audio->bitrate, sizeof audio->bitrate, "%llu", (st.st_size * temp_meta->data.stream_info.sample_rate) / (125 * temp_meta->data.stream_info.total_samples));
+			snprintf(audio->bitrate, sizeof audio->bitrate, "%lu", (st.st_size * temp_meta->data.stream_info.sample_rate) / (125 * temp_meta->data.stream_info.total_samples));
 
 		d_log("multimedia.c: get_flac_audio_info() - stream info: %d Hz, %d channel(s), %d bits per sample, %d total samples\n", temp_meta->data.stream_info.sample_rate,
 														temp_meta->data.stream_info.channels,

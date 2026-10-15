@@ -448,12 +448,13 @@ main(int argc, char **argv)
 	time_t earliest_file_time = get_earliest_file_time(g.l.path);
 
 	if (earliest_file_time != 0) {
-		g.v.total.start_time = earliest_file_time;
-		d_log("zipscript-c: Set start_time to earliest file time: %ld\n", (long)g.v.total.start_time);
+		g.v.total.start_time.tv_sec = earliest_file_time;
+		g.v.total.start_time.tv_usec = 0;
+		d_log("zipscript-c: Set start_time to earliest file time: %ld\n", (long)g.v.total.start_time.tv_sec);
 	} else {
 		// If no files found, set start_time to stop_time
 		g.v.total.start_time = g.v.total.stop_time;
-		d_log("zipscript-c: No files found, set start_time to stop_time: %ld\n", (long)g.v.total.start_time);
+		d_log("zipscript-c: No files found, set start_time to stop_time: %ld\n", (long)g.v.total.start_time.tv_sec);
 	}
 
 	// Ensure duration is at least 1 second

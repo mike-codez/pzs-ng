@@ -44,7 +44,7 @@ uint32_t calc_crc32(char *f) {
 
   d_log_ext("calc_crc32", "calculating crc32 of %s using zlib-ng!\n", f);
   while ((i = fread(buffer, 1, sizeof(buffer), in)) > 0) { 
-    crc = zng_crc32(crc, buffer, (uInt)i);
+    crc = zng_crc32_z(crc, buffer, (uInt)i);
   }
   fclose(in);
   return crc;
