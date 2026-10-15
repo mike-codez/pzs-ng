@@ -2144,6 +2144,7 @@ filebanned_match(const char *filename)
         char            buf[500];
         FILE            *fname_fd;
         char            fbuf[strlen(filename)+1];
+        int             matched = 0;
 
         bzero(fbuf, sizeof(fbuf));
         strncpy(fbuf, filename, sizeof(fbuf) - 1);
@@ -2166,10 +2167,13 @@ filebanned_match(const char *filename)
                 if (!fnmatch(buf, fbuf, 0)) {
                         close(fd);
                         d_log("filebanned_match: found match: %s\n", fbuf);
-                        return 1;
+                        matched = 1;
+                        break;
                 }
         }
-        return 0;
+        /* single exit: fclose() releases the underlying fd too, on every path */
+        fclose(fname_fd);
+        return matched;
 }
 
 
