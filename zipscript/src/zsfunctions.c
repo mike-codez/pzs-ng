@@ -2144,9 +2144,9 @@ filebanned_match(const char *filename)
         char            buf[500];
         FILE            *fname_fd;
         char            fbuf[strlen(filename)+1];
-        int             matched = 0;
 
-        strlcpy(fbuf, filename, sizeof(fbuf));
+        bzero(fbuf, sizeof(fbuf));
+        strncpy(fbuf, filename, sizeof(fbuf) - 1);
 
         if ((fd = open(banned_filelist, O_RDONLY)) == -1) {
                 d_log("filebanned_match: failed to open banned_filelist - open(%s): %s\n", banned_filelist, strerror(errno));
@@ -2159,19 +2159,17 @@ filebanned_match(const char *filename)
         }
         strtolower(fbuf);
         while ((fgets(buf, sizeof(buf), fname_fd))) {
-                buf[strcspn(buf, "\r\n")] = '\0';
+                buf[strlen(buf) - 1] = '\0';
                 if ( *buf == '\0' || *buf == ' ' || *buf == '\t' || *buf == '#' )
                         continue;
                 strtolower(buf);
                 if (!fnmatch(buf, fbuf, 0)) {
+                        close(fd);
                         d_log("filebanned_match: found match: %s\n", fbuf);
-                        matched = 1;
-                        break;
+                        return 1;
                 }
         }
-        /* single exit: fclose() releases the underlying fd too, on every path */
-        fclose(fname_fd);
-        return matched;
+        return 0;
 }
 
 
@@ -2191,7 +2189,6 @@ _err_file_banned(const char *fn, struct VARS *v) {
 	}
 	return 0;
 }
-
 
 /*
  * Append a formatted string at p without writing past end, the last usable
